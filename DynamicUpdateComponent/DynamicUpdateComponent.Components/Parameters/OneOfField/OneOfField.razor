@@ -1,0 +1,77 @@
+﻿@using Microsoft.Extensions.Logging
+
+@inject ILogger<OneOfField> Logger
+
+@namespace DynamicUpdateComponent.Components.Parameters.OneOfField
+
+<div class="field">
+    <table>
+        <tr>
+            <td colspan="4" class="title">@FieldLabel</td>
+        </tr>
+        <tr>
+            <select colspan="4" @bind="SelectedValue">
+                @foreach (var item in Values)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>
+        </tr>
+    </table>
+</div>
+
+
+@code {
+    [Parameter] public string FieldId { get; set; } = string.Empty;
+
+    [Parameter] public string FieldLabel { get; set; } = string.Empty;
+
+    private List<string> values =new List<string>();
+
+    [Parameter]
+    public List<string> Values
+    {
+        get => values;
+        set
+        {
+            if (!value.SequenceEqual(values))
+            {
+                values = value;
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    [Parameter]
+    public string Value
+    {
+        get => selectedValue;
+        set
+        {
+            if (value != selectedValue)
+            {
+                Logger.LogInformation("new value {Value}", value);
+                selectedValue = value ?? string.Empty;
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    [Parameter] public EventCallback<EditableFieldChangedModel> OnChange { get; set; }
+
+    private string selectedValue = string.Empty;
+    private string SelectedValue
+    {
+        get => selectedValue;
+        set
+        {
+            if (value == selectedValue)
+            {
+                return;
+            }
+
+            selectedValue = value;
+            OnChange.InvokeAsync(new EditableFieldChangedModel(FieldId, selectedValue, ChangeType.Value));
+        }
+    }
+}

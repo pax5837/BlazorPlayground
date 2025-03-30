@@ -1,0 +1,102 @@
+﻿@* ReSharper disable RedundantUsingDirective *@
+@using DynamicUpdateComponent.Components.Parameters.OneOfField
+@using DynamicUpdateComponent.Components.Parameters.EditableField
+@* ReSharper restore RedundantUsingDirective *@
+
+@namespace DynamicUpdateComponent.Components.Parameters
+
+<div>
+    @foreach(var p in Parameters)
+        {
+            if (p.Type == ParameterType.Enum)
+            {
+                <OneOfField
+                    FieldId="@p.ParameterId"
+                    FieldLabel="@p.DisplayText"
+                    Value="@p.Value"
+                    Values="@p.EnumValues!.ToList()"
+                    OnChange="@SendUpdate" />
+            }
+            else
+            {
+                <EditableField
+                    FieldId="@p.ParameterId"
+                    FieldValue="@p.Value"
+                    OnSave="@SendUpdate"
+                    FieldLabel="@p.DisplayText"
+                    ShowIncrementButtons="@p.ShowIncrementButtons"
+                    Validator="@p.Validator" />
+            }
+        }
+</div>
+@code {
+    [Parameter]
+    public List<ParameterModel> Parameters { get; set; }
+
+    private void SendUpdate(EditableFieldChangedModel model)
+    {
+        var parameter = Parameters.FirstOrDefault(p => p.ParameterId == model.FieldId);
+        if (parameter is null)
+        {
+            return;
+        }
+
+        var valueToSend = CalculateValueToUpdate(model, parameter);
+
+        parameter.OnParameterChange(model with { FieldValue = valueToSend });
+    }
+
+    private static string? CalculateValueToUpdate(
+        EditableFieldChangedModel editModel,
+        ParameterModel parameterToUpdate)
+    {
+        var value = parameterToUpdate.Type switch
+        {
+            ParameterType.Decimal => decimal.TryParse(editModel.FieldValue, out var _) ? editModel.FieldValue : null,
+            ParameterType.Integer => uint.TryParse(editModel.FieldValue, out var _) ? editModel.FieldValue : null,
+            ParameterType.Enum =>  editModel.FieldValue,
+            _ => null,
+        };
+
+        if (value is null)
+        {
+            return null;
+        }
+
+        return editModel.ChangeType switch
+        {
+            ChangeType.Value => value,
+            ChangeType.Increment or ChangeType.Decrement => CalculateIncrementedValue(
+                originalValue: parameterToUpdate.Value,
+                incrementValue: editModel.FieldValue,
+                parameterType: parameterToUpdate.Type,
+                changeType: editModel.ChangeType),
+            _ => null,
+        };
+    }
+
+    private static string? CalculateIncrementedValue(
+        string originalValue,
+        string incrementValue,
+        ParameterType parameterType,
+        ChangeType changeType)
+    {
+        if (changeType == ChangeType.Value)
+        {
+            return null;
+        }
+
+        return parameterType switch
+        {
+            ParameterType.Integer => ParameterService.CalculateIntegerIncrementedValue(
+                originalValue: originalValue,
+                incrementValue: incrementValue,
+                changeType: changeType),
+            ParameterType.Decimal => ParameterService.CalculateDecimalIncrementedValue(
+                originalValue: originalValue,
+                incrementValue: incrementValue,
+                changeType: changeType),
+            _ => throw new InvalidOperationException($"Can not handle {parameterType}"),
+        };
+    }
+}

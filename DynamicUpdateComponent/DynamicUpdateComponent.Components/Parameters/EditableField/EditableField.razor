@@ -1,4 +1,5 @@
-﻿@namespace DynamicUpdateComponent.Components.Parameters.EditableField
+﻿@using System.Globalization
+@namespace DynamicUpdateComponent.Components.Parameters.EditableField
 
 <div class="edit-field">
     <table>
@@ -37,17 +38,20 @@
 </div>
 
 @code {
+    private static readonly IFormatProvider NumberFormatInfo = new NumberFormatInfo
+    {
+        NumberDecimalSeparator = ".",
+    };
+
     [Parameter] public string FieldId { get; set; } = string.Empty;
 
     [Parameter] public string FieldLabel { get; set; } = string.Empty;
 
-    [Parameter] public string FieldValue { get; set; } = string.Empty;
+    [Parameter] public Number FieldValue { get; set; } = new Number(0);
 
     [Parameter] public EventCallback<EditableFieldChangedModel> OnSave { get; set; }
 
     [Parameter] public bool ShowIncrementButtons { get; set; }
-
-    [Parameter] public Func<string, string?> Validator { get; set; } = s => null;
 
     private bool isEdit = false;
 
@@ -56,6 +60,7 @@
     private string incrementText = string.Empty;
 
     private string? ErrorText;
+
 
 
     private ElementReference inputField;
@@ -80,13 +85,29 @@
 
     private void Save()
     {
-        ErrorText = Validator(inputText);
-        if (ErrorText is not null)
-        {
-            return;
-        }
-        isEdit = false;
-        OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, inputText, ChangeType.Value));
+        Parse(inputText)
+            .Match(
+                whenSuccess: nv =>
+                {
+                    isEdit = false;
+                    OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, nv));
+                },
+                whenError: errorText =>
+                {
+                    ErrorText = errorText;
+                });
+    }
+
+    private Result<Number, string> Parse(string input)
+    {
+
+        return FieldValue.Switch<Result<Number, string>>(
+            whenInteger: _ => int.TryParse(input, NumberStyles.Integer, NumberFormatInfo, out var valInt)
+                ? Result<Number, string>.FromSuccess(valInt)
+                : Result<Number, string>.FromError("Not a valid integer"),
+            whenDecimal: _ => decimal.TryParse(input, NumberStyles.Float, NumberFormatInfo, out var valDecimal)
+                ? Result<Number, string>.FromSuccess(valDecimal)
+                : Result<Number, string>.FromError("Not a valid decimal"));
     }
 
     private void Cancel()
@@ -97,7 +118,7 @@
 
     private void EditValue()
     {
-        inputText = FieldValue;
+        inputText = FieldValue.ToString();
         isEdit = true;
         setFocusOnInputField = true;
     }
@@ -105,23 +126,19 @@
     private void Increment()
     {
         isEdit = false;
-        ErrorText = Validator(incrementText);
-        if (ErrorText is not null)
-        {
-            return;
-        }
-        OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, incrementText, ChangeType.Increment));
+        Parse(incrementText)
+            .Match(
+                whenSuccess: inc => OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, FieldValue + inc)),
+                whenError: error => ErrorText = error);
     }
 
     private void Decrement()
     {
         isEdit = false;
-        ErrorText = Validator(incrementText);
-        if (ErrorText is not null)
-        {
-            return;
-        }
-        OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, incrementText, ChangeType.Decrement));
+        Parse(incrementText)
+            .Match(
+                whenSuccess: dec => OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, FieldValue - dec)),
+                whenError: error => ErrorText = error);
     }
 
     private void OnKeyDown(KeyboardEventArgs args)
@@ -145,10 +162,18 @@
         }
 
         var textValue = args.Value.ToString();
-        ErrorText = string.IsNullOrWhiteSpace(textValue)
-            ? null
-            : Validator(textValue);
-        inputText = textValue;
+
+        if (string.IsNullOrWhiteSpace(textValue))
+        {
+            ErrorText = null;
+            inputText = textValue;
+            return;
+        }
+
+        Parse(textValue)
+            .Match(
+                whenSuccess: _ => inputText = textValue,
+                whenError: error => ErrorText = error);
     }
 
     private void HandleIncrementInputChanged(ChangeEventArgs args)
@@ -159,7 +184,12 @@
         }
 
         var incrementText = args.Value.ToString();
-        ErrorText = string.IsNullOrWhiteSpace(incrementText) ? null : Validator(incrementText);;
+        ErrorText = string.IsNullOrWhiteSpace(incrementText)
+            ? null
+            : Parse(incrementText)
+                .Switch<string?>(
+                    whenSuccess: _ => null,
+                    whenError: error => error);
         this.incrementText = incrementText;
     }
 }

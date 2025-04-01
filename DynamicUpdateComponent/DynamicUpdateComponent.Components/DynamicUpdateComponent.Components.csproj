@@ -14,4 +14,8 @@
         <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.24"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DynamicUpdateComponent.Contracts\DynamicUpdateComponent.Contracts.csproj" />
+    </ItemGroup>
+
 </Project>

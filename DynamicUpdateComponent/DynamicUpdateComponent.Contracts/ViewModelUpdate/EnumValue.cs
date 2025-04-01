@@ -1,3 +1,3 @@
 namespace DynamicUpdateComponent.Contracts.ViewModelUpdate;
 
-public record EnumValue(int Value);
+public record EnumValue(string Value);

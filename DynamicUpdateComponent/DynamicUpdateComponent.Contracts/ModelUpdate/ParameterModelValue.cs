@@ -14,7 +14,7 @@ public class ParameterModelValue
     public EnumValue? EnumValue { private get; init; }
 
     [JsonIgnore]
-    public ParameterType Type { private get; init; }
+    public ParameterType Type { get; init; }
 
     [JsonConstructor]
     [Obsolete(message: "This constructor is only here to be used for json deserialization", error: true)]
@@ -40,6 +40,50 @@ public class ParameterModelValue
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
+        };
+    }
+
+    public EnumValue GetEnumValueOrThrow()
+    {
+        if (Type != ParameterType.Enum)
+        {
+            throw new InvalidOperationException("The parameter type is not an enum.");
+        }
+
+        return EnumValue;
+    }
+
+    public IntegerValue GetIntergerValueOrThrow()
+    {
+        if (Type != ParameterType.Integer)
+        {
+            throw new InvalidOperationException("The parameter type is not an int.");
+        }
+
+        return IntegerValue;
+    }
+
+    public DecimalValue GetDecimalValueOrThrow()
+    {
+        if (Type != ParameterType.Decimal)
+        {
+            throw new InvalidOperationException("The parameter type is not a decimal.");
+        }
+
+        return DecimalValue;
+    }
+
+    public T Switch<T>(
+        Func<EnumValue, T> whenEnumValue,
+        Func<IntegerValue, T> whenIntegerValue,
+        Func<DecimalValue, T> whenDecimalValue)
+    {
+        return Type switch
+        {
+            ParameterType.Enum => whenEnumValue(EnumValue),
+            ParameterType.Integer => whenIntegerValue(IntegerValue),
+            ParameterType.Decimal => whenDecimalValue(DecimalValue),
+            _ => throw new InvalidOperationException($"The type {Type} is not supported.")
         };
     }
 

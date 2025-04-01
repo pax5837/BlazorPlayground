@@ -1,4 +1,6 @@
-﻿@* ReSharper disable RedundantUsingDirective *@
+﻿@using DynamicUpdateComponent.Contracts.ModelUpdate
+@using DynamicUpdateComponent.Contracts.ViewModelUpdate
+@* ReSharper disable RedundantUsingDirective *@
 @using DynamicUpdateComponent.Components.Parameters.OneOfField
 @using DynamicUpdateComponent.Components.Parameters.EditableField
 @* ReSharper restore RedundantUsingDirective *@
@@ -8,24 +10,23 @@
 <div>
     @foreach(var p in Parameters)
         {
-            if (p.Type == ParameterType.Enum)
+            if (p.ModelValue.Type == ParameterModelValue.ParameterType.Enum)
             {
                 <OneOfField
-                    FieldId="@p.ParameterId"
-                    FieldLabel="@p.DisplayText"
-                    Value="@p.Value"
-                    Values="@p.EnumValues!.ToList()"
-                    OnChange="@SendUpdate" />
+                    FieldId="@p.Id.ParameterId"
+                    FieldLabel="@p.LabelText"
+                    Value="@p.ModelValue."
+                    Values="@p.ModelValue.Switch<List<string>>(x => x.EnumValues.ToList(), _ => [], _ => [])"
+                    OnChange="@SendUpdateEnum" />
             }
             else
             {
                 <EditableField
-                    FieldId="@p.ParameterId"
-                    FieldValue="@p.Value"
+                    FieldId="@p.Id.ParameterId"
+                    FieldValue="@p.ModelValue.Switch<Number>(_ => throw new InvalidOperationException(), x => x.Value, x => x.Value)"
                     OnSave="@SendUpdate"
-                    FieldLabel="@p.DisplayText"
-                    ShowIncrementButtons="@p.ShowIncrementButtons"
-                    Validator="@p.Validator" />
+                    FieldLabel="@p.LabelText"
+                    ShowIncrementButtons="@p.ModelValue.Switch<bool>(_ => false, x => x.ShowIncrementButtons, x => x.ShowIncrementButtons)" />
             }
         }
 </div>
@@ -33,70 +34,30 @@
     [Parameter]
     public List<ParameterModel> Parameters { get; set; }
 
+    [Parameter] public EventCallback<ParameterViewModel> OnChange { get; set; }
+
     private void SendUpdate(EditableFieldChangedModel model)
     {
-        var parameter = Parameters.FirstOrDefault(p => p.ParameterId == model.FieldId);
+        var parameter = Parameters.FirstOrDefault(p => p.Id.ParameterId == model.FieldId);
         if (parameter is null)
         {
             return;
         }
 
-        var valueToSend = CalculateValueToUpdate(model, parameter);
-
-        parameter.OnParameterChange(model with { FieldValue = valueToSend });
+        model.FieldValue.Match(
+            whenInteger: val => OnChange.InvokeAsync(new ParameterViewModel(parameter.Id, val)),
+            whenDecimal: val => OnChange.InvokeAsync(new ParameterViewModel(parameter.Id, val)));
     }
 
-    private static string? CalculateValueToUpdate(
-        EditableFieldChangedModel editModel,
-        ParameterModel parameterToUpdate)
+    private void SendUpdateEnum(OneOfFieldChangedModel model)
     {
-        var value = parameterToUpdate.Type switch
+        var parameter = Parameters.FirstOrDefault(p => p.Id.ParameterId == model.FieldId);
+        if (parameter is null)
         {
-            ParameterType.Decimal => decimal.TryParse(editModel.FieldValue, out var _) ? editModel.FieldValue : null,
-            ParameterType.Integer => uint.TryParse(editModel.FieldValue, out var _) ? editModel.FieldValue : null,
-            ParameterType.Enum =>  editModel.FieldValue,
-            _ => null,
-        };
-
-        if (value is null)
-        {
-            return null;
+            return;
         }
 
-        return editModel.ChangeType switch
-        {
-            ChangeType.Value => value,
-            ChangeType.Increment or ChangeType.Decrement => CalculateIncrementedValue(
-                originalValue: parameterToUpdate.Value,
-                incrementValue: editModel.FieldValue,
-                parameterType: parameterToUpdate.Type,
-                changeType: editModel.ChangeType),
-            _ => null,
-        };
-    }
-
-    private static string? CalculateIncrementedValue(
-        string originalValue,
-        string incrementValue,
-        ParameterType parameterType,
-        ChangeType changeType)
-    {
-        if (changeType == ChangeType.Value)
-        {
-            return null;
-        }
-
-        return parameterType switch
-        {
-            ParameterType.Integer => ParameterService.CalculateIntegerIncrementedValue(
-                originalValue: originalValue,
-                incrementValue: incrementValue,
-                changeType: changeType),
-            ParameterType.Decimal => ParameterService.CalculateDecimalIncrementedValue(
-                originalValue: originalValue,
-                incrementValue: incrementValue,
-                changeType: changeType),
-            _ => throw new InvalidOperationException($"Can not handle {parameterType}"),
-        };
+        var enumValue = new DynamicUpdateComponent.Contracts.ViewModelUpdate.EnumValue(model.FieldValue);
+        OnChange.InvokeAsync(new ParameterViewModel(parameter.Id, enumValue));
     }
 }

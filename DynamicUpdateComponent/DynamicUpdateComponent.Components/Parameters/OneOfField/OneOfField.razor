@@ -57,7 +57,7 @@
         }
     }
 
-    [Parameter] public EventCallback<EditableFieldChangedModel> OnChange { get; set; }
+    [Parameter] public EventCallback<OneOfFieldChangedModel> OnChange { get; set; }
 
     private string selectedValue = string.Empty;
     private string SelectedValue
@@ -71,7 +71,7 @@
             }
 
             selectedValue = value;
-            OnChange.InvokeAsync(new EditableFieldChangedModel(FieldId, selectedValue, ChangeType.Value));
+            OnChange.InvokeAsync(new OneOfFieldChangedModel(FieldId, selectedValue));
         }
     }
 }

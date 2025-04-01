@@ -3,5 +3,5 @@ using System.Collections.Immutable;
 namespace DynamicUpdateComponent.Contracts.ModelUpdate;
 
 public record EnumValue(
-    int Value,
+    string Value,
     IImmutableList<string> EnumValues);

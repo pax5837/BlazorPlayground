@@ -1,6 +1,6 @@
 namespace DynamicUpdateComponent.Contracts.ModelUpdate;
 
-public record ParameterModelUpdate(
+public record ParameterModel(
     ParameterIdentity Id,
     string LabelText,
     ParameterModelValue ModelValue);

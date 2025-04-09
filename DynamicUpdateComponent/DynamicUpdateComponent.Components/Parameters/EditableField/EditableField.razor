@@ -1,0 +1,206 @@
+﻿@using System.Globalization
+@namespace DynamicUpdateComponent.Components.Parameters.EditableField
+
+<div class="edit-field">
+    <table>
+        <tr>
+            <td colspan="4" class="title">@FieldLabel</td>
+        </tr>
+        @if (ErrorText is not null)
+        {
+            <tr>
+                <td colspan="4" class="error-text">@ErrorText</td>
+            </tr>
+        }
+        <tr>
+            @if (isEdit)
+            {
+                <td colspan="2"><input @ref="inputField" type="text" class="input-field" @bind="inputText" @oninput="HandleInputChanged" @onkeydown="OnKeyDown"></td>
+                <td><button @onclick="Save" class="save-cancel-button">Save</button></td>
+                <td><button @onclick="Cancel" class="save-cancel-button">Cancel</button></td>
+            }
+            else
+            {
+                <td colspan="2" width="50%"><input type="text" @bind="FieldValueString" @onclick="EditValue"></td>
+                <td colspan="2" width="50%"><button @onclick="EditValue" class="edit-button">Edit</button></td>
+            }
+        </tr>
+        @if (ShowIncrementButtons)
+        {
+            <tr>
+                <td colspan="2"><input type="text" @bind="incrementText" @oninput="HandleIncrementInputChanged"></td>
+                <td><button @onclick="Increment" class="save-cancel-button">+</button></td>
+                <td><button @onclick="Decrement" class="save-cancel-button">-</button></td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+@code {
+    private static readonly IFormatProvider NumberFormatInfo = new NumberFormatInfo
+    {
+        NumberDecimalSeparator = ".",
+    };
+
+    [Parameter] public string FieldId { get; set; } = string.Empty;
+
+    [Parameter] public string FieldLabel { get; set; } = string.Empty;
+
+    [Parameter] public Number FieldValue { get; set; } = new Number(0);
+
+    [Parameter] public EventCallback<EditableFieldChangedModel> OnSave { get; set; }
+
+    [Parameter] public bool ShowIncrementButtons { get; set; }
+
+    private string _fieldValueString;
+    public string FieldValueString
+    {
+        get => FieldValue.Switch(x => x.ToString(), x => x.ToString(CultureInfo.CurrentCulture));
+
+        set
+        {
+            _fieldValueString = FieldValue.Switch(x => x.ToString(), x => x.ToString(CultureInfo.CurrentCulture));
+        }
+    }
+
+    private bool isEdit = false;
+
+    private string inputText = string.Empty;
+
+    private string incrementText = string.Empty;
+
+    private string? ErrorText;
+
+
+
+    private ElementReference inputField;
+
+    private bool setFocusOnInputField;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender && setFocusOnInputField && isEdit)
+        {
+            try
+            {
+                await inputField.FocusAsync();
+                setFocusOnInputField = false;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+    }
+
+    private void Save()
+    {
+        Parse(inputText)
+            .Match(
+                whenSuccess: nv =>
+                {
+                    isEdit = false;
+                    OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, nv));
+                },
+                whenError: errorText =>
+                {
+                    ErrorText = errorText;
+                });
+    }
+
+    private Result<Number, string> Parse(string input)
+    {
+
+        return FieldValue.Switch<Result<Number, string>>(
+            whenInteger: _ => int.TryParse(input, NumberStyles.Integer, NumberFormatInfo, out var valInt)
+                ? Result<Number, string>.FromSuccess(valInt)
+                : Result<Number, string>.FromError("Not a valid integer"),
+            whenDecimal: _ => decimal.TryParse(input, NumberStyles.Float, NumberFormatInfo, out var valDecimal)
+                ? Result<Number, string>.FromSuccess(valDecimal)
+                : Result<Number, string>.FromError("Not a valid decimal"));
+    }
+
+    private void Cancel()
+    {
+        ErrorText = null;
+        isEdit = false;
+    }
+
+    private void EditValue()
+    {
+        isEdit = true;
+        inputText = FieldValue.Switch(x => x.ToString(), x => x.ToString(CultureInfo.CurrentCulture));
+        setFocusOnInputField = true;
+    }
+
+    private void Increment()
+    {
+        isEdit = false;
+        Parse(incrementText)
+            .Match(
+                whenSuccess: inc => OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, FieldValue + inc)),
+                whenError: error => ErrorText = error);
+    }
+
+    private void Decrement()
+    {
+        isEdit = false;
+        Parse(incrementText)
+            .Match(
+                whenSuccess: dec => OnSave.InvokeAsync(new EditableFieldChangedModel(FieldId, FieldValue - dec)),
+                whenError: error => ErrorText = error);
+    }
+
+    private void OnKeyDown(KeyboardEventArgs args)
+    {
+        if (args.Key == "Enter")
+        {
+            Save();
+        }
+
+        if (args.Key == "Escape")
+        {
+            Cancel();
+        }
+    }
+
+    private void HandleInputChanged(ChangeEventArgs args)
+    {
+        if (args?.Value == null)
+        {
+            return;
+        }
+
+        var textValue = args.Value.ToString();
+
+        if (string.IsNullOrWhiteSpace(textValue))
+        {
+            ErrorText = null;
+            inputText = textValue;
+            return;
+        }
+
+        Parse(textValue)
+            .Match(
+                whenSuccess: _ => inputText = textValue,
+                whenError: error => ErrorText = error);
+    }
+
+    private void HandleIncrementInputChanged(ChangeEventArgs args)
+    {
+        if (args?.Value == null)
+        {
+            return;
+        }
+
+        var incrementText = args.Value.ToString();
+        ErrorText = string.IsNullOrWhiteSpace(incrementText)
+            ? null
+            : Parse(incrementText)
+                .Switch<string?>(
+                    whenSuccess: _ => null,
+                    whenError: error => error);
+        this.incrementText = incrementText;
+    }
+}

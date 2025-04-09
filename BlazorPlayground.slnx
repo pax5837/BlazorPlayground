@@ -1,0 +1,12 @@
+﻿<Solution>
+  <Folder Name="/DynamicUpdateComponent/">
+    <Project Path="DynamicUpdateComponent\DynamicUpdateComponent.Backend\DynamicUpdateComponent.Backend.csproj" Type="Classic C#" />
+    <Project Path="DynamicUpdateComponent\DynamicUpdateComponent.BlazorApp\DynamicUpdateComponent.BlazorApp.csproj" Type="Classic C#" />
+    <Project Path="DynamicUpdateComponent\DynamicUpdateComponent.Components\DynamicUpdateComponent.Components.csproj" Type="Classic C#" />
+    <Project Path="DynamicUpdateComponent\DynamicUpdateComponent.Contracts\DynamicUpdateComponent.Contracts.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/_SolutionItems/">
+    <File Path=".gitignore" />
+    <File Path="README.md" />
+  </Folder>
+</Solution>

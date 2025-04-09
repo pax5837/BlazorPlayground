@@ -1,0 +1,77 @@
+﻿@using Microsoft.Extensions.Logging
+
+@inject ILogger<OneOfField> Logger
+
+@namespace DynamicUpdateComponent.Components.Parameters.OneOfField
+
+<div class="field">
+    <table>
+        <tr>
+            <td colspan="4" class="title">@FieldLabel</td>
+        </tr>
+        <tr>
+            <select colspan="4" @bind="SelectedValue">
+                @foreach (var item in Values)
+                {
+                    <option value="@item">@item</option>
+                }
+            </select>
+        </tr>
+    </table>
+</div>
+
+
+@code {
+    [Parameter] public string FieldId { get; set; } = string.Empty;
+
+    [Parameter] public string FieldLabel { get; set; } = string.Empty;
+
+    private List<string> values =new List<string>();
+
+    [Parameter]
+    public List<string> Values
+    {
+        get => values;
+        set
+        {
+            if (!value.SequenceEqual(values))
+            {
+                values = value;
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    [Parameter]
+    public string Value
+    {
+        get => _selectedValue;
+        set
+        {
+            if (value != _selectedValue)
+            {
+                Logger.LogInformation("new value {Value}", _selectedValue);
+                _selectedValue = value ?? string.Empty;
+                InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
+    [Parameter] public EventCallback<OneOfFieldChangedModel> OnChange { get; set; }
+
+    private string _selectedValue = string.Empty;
+    private string SelectedValue
+    {
+        get => _selectedValue;
+        set
+        {
+            if (value == _selectedValue)
+            {
+                return;
+            }
+
+            _selectedValue = value;
+            OnChange.InvokeAsync(new OneOfFieldChangedModel(FieldId, _selectedValue));
+        }
+    }
+}

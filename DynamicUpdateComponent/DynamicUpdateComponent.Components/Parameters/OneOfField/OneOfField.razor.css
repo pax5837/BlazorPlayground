@@ -1,0 +1,12 @@
+﻿.field {
+    border: 1px solid black;
+    border-radius: 5px;
+    width: 270px;
+    padding: 5px;
+    margin: 2px;
+}
+
+.field .title{
+    font-size: small;
+    font-style: italic;
+}

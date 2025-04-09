@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <SupportedPlatform Include="browser"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.24"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DynamicUpdateComponent.Contracts\DynamicUpdateComponent.Contracts.csproj" />
+    </ItemGroup>
+
+</Project>

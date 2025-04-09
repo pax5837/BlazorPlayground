@@ -21,7 +21,7 @@
             }
             else
             {
-                <td colspan="2" width="50%"><input type="text" @bind="FieldValue" @onclick="EditValue"></td>
+                <td colspan="2" width="50%"><input type="text" @bind="FieldValueString" @onclick="EditValue"></td>
                 <td colspan="2" width="50%"><button @onclick="EditValue" class="edit-button">Edit</button></td>
             }
         </tr>
@@ -52,6 +52,17 @@
     [Parameter] public EventCallback<EditableFieldChangedModel> OnSave { get; set; }
 
     [Parameter] public bool ShowIncrementButtons { get; set; }
+
+    private string _fieldValueString;
+    public string FieldValueString
+    {
+        get => FieldValue.Switch(x => x.ToString(), x => x.ToString(CultureInfo.CurrentCulture));
+
+        set
+        {
+            _fieldValueString = FieldValue.Switch(x => x.ToString(), x => x.ToString(CultureInfo.CurrentCulture));
+        }
+    }
 
     private bool isEdit = false;
 
@@ -118,8 +129,8 @@
 
     private void EditValue()
     {
-        inputText = FieldValue.ToString();
         isEdit = true;
+        inputText = FieldValue.Switch(x => x.ToString(), x => x.ToString(CultureInfo.CurrentCulture));
         setFocusOnInputField = true;
     }
 

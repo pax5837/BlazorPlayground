@@ -1,5 +1,38 @@
 ﻿@page "/parameters"
+@using System.Collections.Immutable
+@using DynamicUpdateComponent.Backend
+@using DynamicUpdateComponent.Components.Parameters
+@using DynamicUpdateComponent.Contracts.ModelUpdate
+
+@using DynamicUpdateComponent.Contracts.ViewModelUpdate
 
 @namespace DynamicUpdateComponent.BlazorApp.Components.Pages
 
+@inject IBackyBackend BackyBackend;
+
+@rendermode InteractiveServer
 <h2>Parameters</h2>
+<ParameterList Parameters="parameters" OnChange="ParameterListChanged"/>
+
+@code {
+    List<ParameterModel> parameters;
+
+    protected override Task OnInitializedAsync()
+    {
+        BackyBackend.ModelUpdated += BackyBackendOnModelUpdated;
+        BackyBackend.SetComponent(BackyBackend.GetComponentIds().First());
+
+        return Task.CompletedTask;
+    }
+
+    private void BackyBackendOnModelUpdated(object? sender, IImmutableList<ParameterModel> e)
+    {
+        parameters = e.ToList();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ParameterListChanged(ParameterViewModel vm)
+    {
+        BackyBackend.UpdateModel(vm);
+    }
+}

@@ -45,13 +45,13 @@
     [Parameter]
     public string Value
     {
-        get => selectedValue;
+        get => _selectedValue;
         set
         {
-            if (value != selectedValue)
+            if (value != _selectedValue)
             {
-                Logger.LogInformation("new value {Value}", value);
-                selectedValue = value ?? string.Empty;
+                Logger.LogInformation("new value {Value}", _selectedValue);
+                _selectedValue = value ?? string.Empty;
                 InvokeAsync(StateHasChanged);
             }
         }
@@ -59,19 +59,19 @@
 
     [Parameter] public EventCallback<OneOfFieldChangedModel> OnChange { get; set; }
 
-    private string selectedValue = string.Empty;
+    private string _selectedValue = string.Empty;
     private string SelectedValue
     {
-        get => selectedValue;
+        get => _selectedValue;
         set
         {
-            if (value == selectedValue)
+            if (value == _selectedValue)
             {
                 return;
             }
 
-            selectedValue = value;
-            OnChange.InvokeAsync(new OneOfFieldChangedModel(FieldId, selectedValue));
+            _selectedValue = value;
+            OnChange.InvokeAsync(new OneOfFieldChangedModel(FieldId, _selectedValue));
         }
     }
 }

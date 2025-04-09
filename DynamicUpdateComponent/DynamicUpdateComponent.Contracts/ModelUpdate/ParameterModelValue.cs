@@ -120,9 +120,24 @@ public class ParameterModelValue
         EnumValue = value;
     }
 
+    public static ParameterModelValue From(EnumValue value) => new(value);
+    public static ParameterModelValue From(IntegerValue value) => new(value);
+    public static ParameterModelValue From(DecimalValue value) => new(value);
+
     public static implicit operator ParameterModelValue(EnumValue value) => new(value);
     public static implicit operator ParameterModelValue(IntegerValue value) => new(value);
     public static implicit operator ParameterModelValue(DecimalValue value) => new(value);
+
+    public override string ToString()
+    {
+        return Type switch
+        {
+            ParameterType.Decimal => $"{nameof(Type)}: {Type}, {nameof(DecimalValue)}: {DecimalValue}",
+            ParameterType.Integer => $"{nameof(Type)}: {Type}, {nameof(IntegerValue)}: {IntegerValue}",
+            ParameterType.Enum => $"{nameof(Type)}: {Type}, {nameof(EnumValue)}: {EnumValue}",
+            _ => throw new InvalidOperationException($"The type {Type} is not supported."),
+        };
+    }
 
     public enum ParameterType
     {

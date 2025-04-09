@@ -12,21 +12,25 @@
         {
             if (p.ModelValue.Type == ParameterModelValue.ParameterType.Enum)
             {
+                var val = p.ModelValue.Switch<string>(x => x.Value, _ => string.Empty, _ => string.Empty);
+                var vals = p.ModelValue.Switch<List<string>>(x => x.EnumValues.ToList(), _ => [], _ => []);
                 <OneOfField
                     FieldId="@p.Id.ParameterId"
                     FieldLabel="@p.LabelText"
-                    Value="@p.ModelValue."
-                    Values="@p.ModelValue.Switch<List<string>>(x => x.EnumValues.ToList(), _ => [], _ => [])"
+                    Value="@val"
+                    Values="@vals"
                     OnChange="@SendUpdateEnum" />
             }
             else
             {
+                var fieldValue = p.ModelValue.Switch<Number>(_ => throw new InvalidOperationException(), x => x.Value, x => x.Value);
+                var showIncrementButtons = p.ModelValue.Switch<bool>(_ => false, x => x.ShowIncrementButtons, x => x.ShowIncrementButtons);
                 <EditableField
                     FieldId="@p.Id.ParameterId"
-                    FieldValue="@p.ModelValue.Switch<Number>(_ => throw new InvalidOperationException(), x => x.Value, x => x.Value)"
+                    FieldValue="@fieldValue"
                     OnSave="@SendUpdate"
                     FieldLabel="@p.LabelText"
-                    ShowIncrementButtons="@p.ModelValue.Switch<bool>(_ => false, x => x.ShowIncrementButtons, x => x.ShowIncrementButtons)" />
+                    ShowIncrementButtons="@showIncrementButtons" />
             }
         }
 </div>
@@ -34,7 +38,8 @@
     [Parameter]
     public List<ParameterModel> Parameters { get; set; }
 
-    [Parameter] public EventCallback<ParameterViewModel> OnChange { get; set; }
+    [Parameter]
+    public EventCallback<ParameterViewModel> OnChange { get; set; }
 
     private void SendUpdate(EditableFieldChangedModel model)
     {

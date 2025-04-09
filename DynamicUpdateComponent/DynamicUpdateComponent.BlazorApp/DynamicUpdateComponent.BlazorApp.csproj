@@ -6,4 +6,10 @@
         <ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\DynamicUpdateComponent.Backend\DynamicUpdateComponent.Backend.csproj" />
+      <ProjectReference Include="..\DynamicUpdateComponent.Components\DynamicUpdateComponent.Components.csproj" />
+      <ProjectReference Include="..\DynamicUpdateComponent.Contracts\DynamicUpdateComponent.Contracts.csproj" />
+    </ItemGroup>
+
 </Project>

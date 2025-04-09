@@ -1,10 +1,14 @@
+using DynamicUpdateComponent.Backend;
 using DynamicUpdateComponent.BlazorApp.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorComponents()
+builder.Services
+    .AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddBackendServices();
 
 var app = builder.Build();
 

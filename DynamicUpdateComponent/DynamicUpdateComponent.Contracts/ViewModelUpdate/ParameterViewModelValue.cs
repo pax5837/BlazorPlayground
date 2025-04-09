@@ -13,7 +13,7 @@ public class ParameterViewModelValue
     [JsonInclude]
     public EnumValue? EnumValue { private get; init; }
 
-    [JsonIgnore]
+    [JsonInclude]
     public ParameterType Type { private get; init; }
 
     [JsonConstructor]
@@ -61,9 +61,44 @@ public class ParameterViewModelValue
         EnumValue = value;
     }
 
+    public decimal GetDecimalValueOrThrow()
+    {
+        if (Type != ParameterType.Decimal)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return DecimalValue!.Value;
+    }
+
+    public int GetIntegerValueOrThrow()
+    {
+        if (Type != ParameterType.Integer)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return IntegerValue!.Value;
+    }
+
+    public string GetEnumValueOrThrow()
+    {
+        if (Type != ParameterType.Enum)
+        {
+            throw new InvalidOperationException();
+        }
+
+        return EnumValue!.Value;
+    }
+
     public static implicit operator ParameterViewModelValue(EnumValue value) => new(value);
     public static implicit operator ParameterViewModelValue(int value) => new(value);
     public static implicit operator ParameterViewModelValue(decimal value) => new(value);
+
+    public override string ToString()
+    {
+        return System.Text.Json.JsonSerializer.Serialize(this);
+    }
 
     public enum ParameterType
     {

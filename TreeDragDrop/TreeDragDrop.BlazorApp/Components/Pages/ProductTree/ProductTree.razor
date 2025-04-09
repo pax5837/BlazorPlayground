@@ -1,0 +1,36 @@
+﻿@using TreeDragDrop.BlazorApp.Backend.Products
+
+@inject ILogger<ProductTree> Logger;
+@inject ContextMenuService ContextMenuService;
+
+<RadzenTree
+    Data=@RootProductNodes
+    Style="height: 800px"
+    ItemRender="ItemRender"
+    ItemContextMenu="ItemContextMenu"
+    Change=@OnChange
+    @bind-Value=@selection>
+    <RadzenTreeLevel
+        TextProperty="Description"
+        ChildrenProperty="Children"
+        Expanded=@(i => true)
+        HasChildren=@(i => ((ProductNode)i).HasChildren)>
+        <Template>
+            <span style="width: 25px">@(((ProductNode)context.Value).Quantity)x</span>
+            <span>@(((ProductNode)context.Value).Product.Name)</span>
+            <span>, (p/n: @(((ProductNode)context.Value).Product.Id))</span>
+        </Template>
+    </RadzenTreeLevel>
+</RadzenTree>
+
+
+@code {
+    [Parameter]
+    public EventCallback<ProductNode?> ProductNodeSelected { get; set; }
+
+    [Parameter]
+    public Product? DraggedProduct { get; set; }
+
+    [Parameter]
+    public IEnumerable<ProductNode> RootProductNodes { get; set; }
+}

@@ -1,0 +1,71 @@
+﻿@using TreeDragDrop.BlazorApp.Backend.Products
+
+@inject ILogger<ProductList> Logger;
+
+<RadzenDataGrid
+    AllowFiltering="true"
+    AllowColumnResize="true"
+    AllowAlternatingRows="false"
+    FilterMode="FilterMode.Simple"
+    AllowSorting="true"
+    PageSize="20"
+    AllowPaging="true"
+    PagerHorizontalAlign="HorizontalAlign.Left"
+    ShowPagingSummary="true"
+    Data="@Products"
+    ColumnWidth="300px"
+    LogicalFilterOperator="LogicalFilterOperator.Or"
+    SelectionMode="DataGridSelectionMode.Single"
+    RowRender="ProductListRowRender"
+    @bind-Value="@selectedProducts">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(Product.Id)" Filterable="true" Title="ID" Frozen="true" Width="30%" TextAlign="TextAlign.Center"/>
+        <RadzenDataGridColumn Property="@nameof(Product.Name)" Title="Name" Frozen="true" Width="70%"/>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    IList<Product> selectedProducts;
+
+    private Product? draggedProduct;
+    Product? DraggedProduct
+    {
+        get => draggedProduct;
+        set
+        {
+            if (draggedProduct == value)
+            {
+                return;
+            }
+
+            draggedProduct = value;
+            if (draggedProduct is not null)
+            {
+                OnProductDragged.InvokeAsync(value);
+            }
+        }
+    }
+
+    [Parameter]
+    public EventCallback<Product> OnProductDragged { get; set; }
+
+    [Parameter]
+    public IQueryable<Product> Products { get; set; }
+
+    private void ProductListRowRender(RowRenderEventArgs<Product> args)
+    {
+        var product = args.Data;
+        args.Attributes.Add("draggable", "true");
+        args.Attributes.Add("ondragstart", EventCallback.Factory.Create<DragEventArgs>(this, (DragEventArgs e) => { HandleDraggedProduct(product); }));
+        args.Attributes.Add("ondragover", "event.preventDefault()");
+    }
+
+    private void HandleDraggedProduct(Product product)
+    {
+        Logger.LogInformation("Drag started {productId}", product.Id);
+        if (DraggedProduct == null)
+        {
+            DraggedProduct = product;
+        }
+    }
+}

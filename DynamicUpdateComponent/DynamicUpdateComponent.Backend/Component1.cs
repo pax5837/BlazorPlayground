@@ -34,18 +34,18 @@ internal class Component1 : IComponent
         switch (model.Id.ParameterId)
         {
             case decimalValueFieldId:
-                _decimalValue = model.Value.GetDecimalValueOrThrow();
                 Task.Delay(_delayBeforeUpdateMilliseconds).Wait();
-                PublishModel();
+                _decimalValue = model.Value.GetDecimalValueOrThrow();
                 break;
             case delayBeforeUpdateId:
-                _delayBeforeUpdateMilliseconds = model.Value.GetIntegerValueOrThrow();
                 Task.Delay(_delayBeforeUpdateMilliseconds).Wait();
-                PublishModel();
+                _delayBeforeUpdateMilliseconds = model.Value.GetIntegerValueOrThrow();
                 break;
             default:
                 break;
         }
+
+        PublishModel();
     }
 
     public void Activate()

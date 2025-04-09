@@ -5,6 +5,9 @@
     <Project Path="DynamicUpdateComponent\DynamicUpdateComponent.Components\DynamicUpdateComponent.Components.csproj" Type="Classic C#" />
     <Project Path="DynamicUpdateComponent\DynamicUpdateComponent.Contracts\DynamicUpdateComponent.Contracts.csproj" Type="Classic C#" />
   </Folder>
+  <Folder Name="/ProductStructure/">
+    <Project Path="TreeDragDrop\TreeDragDrop.BlazorApp\TreeDragDrop.BlazorApp.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/_SolutionItems/">
     <File Path=".gitignore" />
     <File Path="README.md" />

@@ -1,0 +1,32 @@
+﻿@using TreeDragDrop.BlazorApp.Backend.Products
+
+<div>Parent: @ProductNode.ParentNode.Product.Name</div>
+<div>Quantity: @ProductNode.Quantity</div>
+<button @onclick="IncreaseQuantity">+</button>
+<button @onclick="DecreaseQuantity">-</button>
+
+@code {
+    [Parameter]
+    public  ProductNode ProductNode { get; set; }
+
+    [Parameter]
+    public EventCallback OnChange { get; set; }
+
+    private void IncreaseQuantity(MouseEventArgs obj)
+    {
+        ProductNode.Quantity++;
+        OnChange.InvokeAsync();
+    }
+
+    private void DecreaseQuantity(MouseEventArgs obj)
+    {
+        if (ProductNode.Quantity < 1)
+        {
+            return;
+        }
+
+        ProductNode.Quantity--;
+        OnChange.InvokeAsync();
+    }
+
+}

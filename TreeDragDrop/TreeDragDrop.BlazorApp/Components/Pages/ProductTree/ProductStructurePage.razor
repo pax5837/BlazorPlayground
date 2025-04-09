@@ -1,0 +1,84 @@
+﻿@page "/product-structure"
+@using System.Collections.Immutable
+@using System.Text.Json
+@using TreeDragDrop.BlazorApp.Backend
+@using TreeDragDrop.BlazorApp.Backend.Products
+
+@inject ContextMenuService ContextMenuService
+@inject ILogger<ProductStructurePage> Logger
+@inject ProductRepository ProductRepository
+
+@rendermode InteractiveServer
+
+<table>
+    <tr>
+        <td style="width: 50%; vertical-align: top">
+            @if (selectedProductNode is not null)
+            {
+                <div class="title">Selected product node</div>
+                <div class="selected-product-info">
+                    <div>Product: @selectedProductNode.Product.Name</div>
+                    @if (selectedProductNode.ParentNode is not null)
+                    {
+                        <SelectedProduct
+                            ProductNode=@selectedProductNode
+                            OnChange=@HandleProductNodeChanged/>
+                    }
+                </div>
+            }
+
+            <div class="title">Product Structure</div>
+            <ProductTree
+                DraggedProduct="@draggedProduct"
+                RootProductNodes="@rootProductNodes"
+                ProductNodeSelected="HandleProductNodeSelected"
+                />
+        </td>
+        <td style="width: 50%; vertical-align: top">
+
+            <div class="title">Products</div>
+            <ProductList
+                Products="@products"
+                OnProductDragged="HandleProductListProductDragged"
+                />
+        </td>
+    </tr>
+</table>
+
+
+@code
+{
+    private object? selection;
+    private ProductNode? selectedProductNode;
+    IEnumerable<ProductNode> rootProductNodes;
+    IQueryable<Product> products;
+    IList<Product> selectedProducts;
+    ProductNode? draggedProductNode;
+    Product? draggedProduct;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var (rootNode, allNodes) = ProductRepository.GetProductNodes();
+        rootProductNodes = [rootNode];
+        products = allNodes.Select(x => x.Product).ToHashSet().AsQueryable();
+        var immutableList = new ProductNodeTreeToRowItemMapper().Flatten(rootProductNodes.ToImmutableList());
+        Logger.LogInformation("{FlatList}", JsonSerializer.Serialize(immutableList.Select(x => $"{x.ProductNode.Product.Name.PadLeft(x.ProductNode.Product.Name.Length+x.NestingLevel, ' ')}").ToImmutableList()));
+    }
+
+    private void HandleProductNodeChanged()
+    {
+        StateHasChanged();
+    }
+
+    private void HandleProductNodeSelected(ProductNode? productNode)
+    {
+        selectedProductNode = productNode;
+    }
+
+    private void HandleProductListProductDragged(Product product)
+    {
+        draggedProduct = product;
+    }
+}

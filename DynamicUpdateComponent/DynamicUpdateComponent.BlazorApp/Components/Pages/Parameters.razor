@@ -5,6 +5,7 @@
 @using DynamicUpdateComponent.Contracts.ModelUpdate
 
 @using DynamicUpdateComponent.Contracts.ViewModelUpdate
+@using DynamicUpdateComponent.Components.Parameters.OneOfField
 
 @namespace DynamicUpdateComponent.BlazorApp.Components.Pages
 
@@ -12,15 +13,22 @@
 
 @rendermode InteractiveServer
 <h2>Parameters</h2>
+<OneOfField Value="@activeComponent" Values="@components" OnChange="Callback"/>
 <ParameterList Parameters="parameters" OnChange="ParameterListChanged"/>
 
 @code {
     List<ParameterModel> parameters;
 
+    private string activeComponent;
+
+    private List<string> components;
+
     protected override Task OnInitializedAsync()
     {
         BackyBackend.ModelUpdated += BackyBackendOnModelUpdated;
-        BackyBackend.SetComponent(BackyBackend.GetComponentIds().First());
+        components = BackyBackend.GetComponentIds().ToList();
+        activeComponent = components.First();
+        BackyBackend.SetComponent(activeComponent);
 
         return Task.CompletedTask;
     }
@@ -35,4 +43,11 @@
     {
         BackyBackend.UpdateModel(vm);
     }
+
+    private void Callback(OneOfFieldChangedModel obj)
+    {
+        BackyBackend.SetComponent(obj.FieldValue);
+        activeComponent = obj.FieldValue;
+    }
+
 }

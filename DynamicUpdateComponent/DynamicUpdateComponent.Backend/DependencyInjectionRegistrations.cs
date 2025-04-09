@@ -8,6 +8,7 @@ public static class DependencyInjectionRegistrations
     {
         services
             .AddSingleton<IComponent, Component1>()
+            .AddSingleton<IComponent, Component2>()
             .AddSingleton<IBackyBackend, BackyBackend>();
 
         return services;

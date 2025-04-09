@@ -11,17 +11,17 @@ internal class Component1 : IComponent
     public event EventHandler<IImmutableList<ParameterModel>>? ModelUpdated;
 
     private const string decimalValueFieldId = "decimalValue";
-    private decimal decimalValue;
-
     private const string delayBeforeUpdateId = "DelayBeforUpdate";
-    private int delayBeforeUpdateMilliseconds;
+
+    private decimal _decimalValue;
+    private int _delayBeforeUpdateMilliseconds;
 
     public string Id => nameof(Component1);
 
     public Component1()
     {
-        decimalValue = 41841.123m;
-        delayBeforeUpdateMilliseconds = 1000;
+        _decimalValue = 41841.123m;
+        _delayBeforeUpdateMilliseconds = 1000;
     }
 
     public void UpdateModel(ParameterViewModel model)
@@ -34,13 +34,13 @@ internal class Component1 : IComponent
         switch (model.Id.ParameterId)
         {
             case decimalValueFieldId:
-                decimalValue = model.Value.GetDecimalValueOrThrow();
-                Task.Delay(delayBeforeUpdateMilliseconds).Wait();
+                _decimalValue = model.Value.GetDecimalValueOrThrow();
+                Task.Delay(_delayBeforeUpdateMilliseconds).Wait();
                 PublishModel();
                 break;
             case delayBeforeUpdateId:
-                delayBeforeUpdateMilliseconds = model.Value.GetIntegerValueOrThrow();
-                Task.Delay(delayBeforeUpdateMilliseconds).Wait();
+                _delayBeforeUpdateMilliseconds = model.Value.GetIntegerValueOrThrow();
+                Task.Delay(_delayBeforeUpdateMilliseconds).Wait();
                 PublishModel();
                 break;
             default:
@@ -61,11 +61,11 @@ internal class Component1 : IComponent
                 new ParameterModel(
                     Id: new ParameterIdentity(Id, decimalValueFieldId),
                     LabelText: "Decimal Value",
-                    ModelValue: new DecimalValue(decimalValue, false)),
+                    ModelValue: new DecimalValue(_decimalValue, false)),
                 new ParameterModel(
                     Id: new ParameterIdentity(Id, delayBeforeUpdateId),
                     LabelText: "Delay before update [ms]",
-                    ModelValue: new IntegerValue(delayBeforeUpdateMilliseconds, false)),
+                    ModelValue: new IntegerValue(_delayBeforeUpdateMilliseconds, false)),
             ]);
     }
 }

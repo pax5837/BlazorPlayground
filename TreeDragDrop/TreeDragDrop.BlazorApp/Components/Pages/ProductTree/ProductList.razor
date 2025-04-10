@@ -27,25 +27,6 @@
 @code {
     IList<Product> selectedProducts;
 
-    private Product? draggedProduct;
-    Product? DraggedProduct
-    {
-        get => draggedProduct;
-        set
-        {
-            if (draggedProduct == value)
-            {
-                return;
-            }
-
-            draggedProduct = value;
-            if (draggedProduct is not null)
-            {
-                OnProductDragged.InvokeAsync(value);
-            }
-        }
-    }
-
     [Parameter]
     public EventCallback<Product> OnProductDragged { get; set; }
 
@@ -63,9 +44,6 @@
     private void HandleDraggedProduct(Product product)
     {
         Logger.LogInformation("Drag started {productId}", product.Id);
-        if (DraggedProduct == null)
-        {
-            DraggedProduct = product;
-        }
+        OnProductDragged.InvokeAsync(product);
     }
 }

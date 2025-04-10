@@ -1,3 +1,13 @@
 .title {
     font-weight: bold;
 }
+
+.error {
+    color: red;
+    font-weight: bold;
+}
+
+.tree {
+    width: 100%;
+    display: block;
+}

@@ -8,22 +8,22 @@ internal class ProductRepository
     {
         var productNumber = 1;
 
-        var overallAssemblyProduct = new Product(productNumber++, "Component", 1);
+        var overallAssemblyProduct = new Product((productNumber++).ToString(), "Component", 1);
 
-        var baseAssemblyProduct = new Product(productNumber++, "Base assembly", 1);
-        var basePlateProduct = new Product(productNumber++, "Base plate", 2);
-        var linearAxisAssembly = new Product(productNumber++, "Linear axis", 3);
-        var motorProduct = new Product(productNumber++, "Motor 90W", 4);
-        var spindleProduct = new Product(productNumber++, "Spindle", 5);
-        var sensorProduct = new Product(productNumber++, "Sensor", 5);
-        var screwM6Product = new Product(productNumber++, "Screw M6x30", 1);
-        var screwM4Product = new Product(productNumber++, "Screw M4x20", 1);
-        var armAssembly = new Product(productNumber++, "Arm assembly", 20);
-        var armProduct = new Product(productNumber++, "Arm", 11);
-        var gripperProduct = new Product(productNumber++, "Gripper", 4);
-        var sensorAsembly = new Product(productNumber++, "Sensor assy", 3);
-        var sensorCalbeProduct = new Product(productNumber++, "Sensor cable", 2);
-        var screwM3Product = new Product(productNumber++, "Screw M3x10", 1);
+        var baseAssemblyProduct = new Product((productNumber++).ToString(), "Base assembly", 1);
+        var basePlateProduct = new Product((productNumber++).ToString(), "Base plate", 2);
+        var linearAxisAssembly = new Product((productNumber++).ToString(), "Linear axis", 3);
+        var motorProduct = new Product((productNumber++).ToString(), "Motor 90W", 4);
+        var spindleProduct = new Product((productNumber++).ToString(), "Spindle", 5);
+        var sensorProduct = new Product((productNumber++).ToString(), "Sensor", 5);
+        var screwM6Product = new Product((productNumber++).ToString(), "Screw M6x30", 1);
+        var screwM4Product = new Product((productNumber++).ToString(), "Screw M4x20", 1);
+        var armAssembly = new Product((productNumber++).ToString(), "Arm assembly", 20);
+        var armProduct = new Product((productNumber++).ToString(), "Arm", 11);
+        var gripperProduct = new Product((productNumber++).ToString(), "Gripper", 4);
+        var sensorAssembly = new Product((productNumber++).ToString(), "Sensor assy", 3);
+        var sensorCableProduct = new Product((productNumber++).ToString(), "Sensor cable", 2);
+        var screwM3Product = new Product((productNumber++).ToString(), "Screw M3x10", 1);
 
 
         var overallAssemblyNode = new ProductNode(overallAssemblyProduct, 1, null);
@@ -39,9 +39,9 @@ internal class ProductRepository
         var linearAssyScrewM6 = new ProductNode(screwM6Product, 4, linearAssemblyNode);
 
 
-        var sensorAssemblyNode = new ProductNode(sensorAsembly, 1, linearAssemblyNode);
+        var sensorAssemblyNode = new ProductNode(sensorAssembly, 1, linearAssemblyNode);
         var sensorProductNode = new ProductNode(sensorProduct, 1, sensorAssemblyNode);
-        var sensorCableProductNode = new ProductNode(sensorCalbeProduct, 1, sensorAssemblyNode);
+        var sensorCableProductNode = new ProductNode(sensorCableProduct, 1, sensorAssemblyNode);
         var sensorScrewsProductNode = new ProductNode(screwM3Product, 2, sensorAssemblyNode);
 
 
@@ -51,9 +51,9 @@ internal class ProductRepository
         var gripperNode = new ProductNode(gripperProduct, 1, armAssyNode);
         var armAssyScrewsNode = new ProductNode(screwM4Product, 3, armNode);
 
-        var controlUnitAssyProduct = new Product(productNumber++, "Control unit assy", 4);
-        var controlUnitProduct = new Product(productNumber++, "Control unit", 4);
-        var controlUnitCoverProduct = new Product(productNumber++, "Control unit cover", 4);
+        var controlUnitAssyProduct = new Product((productNumber++).ToString(), "Control unit assy", 4);
+        var controlUnitProduct = new Product((productNumber++).ToString(), "Control unit", 4);
+        var controlUnitCoverProduct = new Product((productNumber++).ToString(), "Control unit cover", 4);
 
         var controlUnitAssyNode = new ProductNode(controlUnitAssyProduct, 1, overallAssemblyNode);
         var controlUnitNode = new ProductNode(controlUnitProduct, 1, controlUnitAssyNode);

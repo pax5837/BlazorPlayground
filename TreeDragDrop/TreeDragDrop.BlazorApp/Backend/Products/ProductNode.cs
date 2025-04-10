@@ -101,7 +101,7 @@ public class ProductNode : IEquatable<ProductNode>
 		new ProductNode(Product, Quantity, newParentNode);
 	}
 
-	private void RemoveChild(int childProductId)
+	private void RemoveChild(string childProductId)
 	{
 		Product.RemoveChild(childProductId);
 	}

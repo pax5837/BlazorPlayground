@@ -5,7 +5,7 @@
 
 <RadzenTree
     Data=@RootProductNodes
-    Style="height: 800px"
+    Style="width:100%; height: 800px"
     ItemRender="ItemRender"
     ItemContextMenu="ItemContextMenu"
     Change=@OnChange
@@ -27,6 +27,12 @@
 @code {
     [Parameter]
     public EventCallback<ProductNode?> ProductNodeSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ProductDropFailed { get; set; }
+
+    [Parameter]
+    public EventCallback ProductDragged { get; set; }
 
     [Parameter]
     public Product? DraggedProduct { get; set; }

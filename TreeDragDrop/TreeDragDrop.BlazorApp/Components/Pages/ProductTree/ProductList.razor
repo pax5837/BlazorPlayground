@@ -39,10 +39,6 @@
             }
 
             draggedProduct = value;
-            if (draggedProduct is not null)
-            {
-                OnProductDragged.InvokeAsync(value);
-            }
         }
     }
 
@@ -63,6 +59,7 @@
     private void HandleDraggedProduct(Product product)
     {
         Logger.LogInformation("Drag started {productId}", product.Id);
+        OnProductDragged.InvokeAsync(product);
         if (DraggedProduct == null)
         {
             DraggedProduct = product;

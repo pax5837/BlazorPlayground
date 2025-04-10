@@ -4,7 +4,7 @@ namespace TreeDragDrop.BlazorApp.Backend.Products;
 
 public class Product
 {
-	public int Id { get; }
+	public string Id { get; }
 
 	public string Name { get; set; }
 
@@ -14,7 +14,7 @@ public class Product
 
 	private HashSet<ProductNode> children = new();
 
-	public Product(int id, string name, decimal price)
+	public Product(string id, string name, decimal price)
 	{
 		Id = id;
 		Name = name;
@@ -26,9 +26,9 @@ public class Product
 		children.Add(productNode);
 	}
 
-	public ProductNode? RemoveChild(int productId)
+	public ProductNode? RemoveChild(string productId)
 	{
-		var productNodeOrNull = children.FirstOrDefault(pn => pn.Product.Id == productId);
+		var productNodeOrNull = children.FirstOrDefault(pn => pn.Product.Id .Equals(productId, StringComparison.Ordinal));
 		if (productNodeOrNull is not null)
 		{
 			children.Remove(productNodeOrNull);
@@ -39,9 +39,9 @@ public class Product
 
 	public bool HasChildren() => children.Any();
 
-	public bool HasChild(int productId)
+	public bool HasChild(string productId)
 	{
-		return children.Any(pn => pn.Product.Id == productId);
+		return children.Any(pn => pn.Product.Id.Equals(productId, StringComparison.Ordinal));
 	}
 
 	public bool HasDescendant(List<Product> products)

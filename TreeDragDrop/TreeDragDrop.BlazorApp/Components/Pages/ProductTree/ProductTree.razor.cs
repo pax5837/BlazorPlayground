@@ -7,6 +7,8 @@ namespace TreeDragDrop.BlazorApp.Components.Pages.ProductTree;
 
 public partial class ProductTree : ComponentBase
 {
+    private object lockyLock = new();
+
     private object? selection;
     ProductNode? draggedProductNode;
 
@@ -93,80 +95,103 @@ public partial class ProductTree : ComponentBase
 
     private void HandleDrop(ProductNode? targetProductNode, DragEventArgs e)
     {
-        if ((draggedProductNode is null && DraggedProduct is null) || targetProductNode is null)
+        lock (lockyLock)
         {
-            Logger.LogInformation(
-                "No Drop, product node exists: {DraggedProductNodeExists}, dragged product exists: {DraggedProductExists}, target node exists: {TargetProductNodeExists}",
-                draggedProductNode is not null,
-                DraggedProduct is not null,
-                targetProductNode is not null);
-            return;
-        }
-
-        if (draggedProductNode is not null)
-        {
-            Logger.LogInformation(
-                "Dropping started on {ProductNodeId}, with ctrl key pressed {ShiftKeyPressed}",
-                targetProductNode.NodeId,
-                e.CtrlKey);
-            var canAddChildResult = targetProductNode.CanAddChild(draggedProductNode.Product);
-            Logger.LogInformation(
-                "Trying adding product with id {CandidateProductId} to product with id {CandidateParentProductId}, can add child: {CanAddChild}",
-                draggedProductNode.Product.Id,
-                targetProductNode.Product.Id,
-                canAddChildResult);
-
-            if (canAddChildResult == CanAddChildResult.AddChildPossible)
+            if ((draggedProductNode is null && DraggedProduct is null) || targetProductNode is null)
             {
-                if (e.CtrlKey)
-                {
-                    draggedProductNode.Clone(newParentNode: targetProductNode);
-                }
-                else
-                {
-                    draggedProductNode.MoveToNewParent(targetProductNode);
-                }
+                Logger.LogInformation(
+                    "No Drop, product node exists: {DraggedProductNodeExists}, dragged product Exists: {DraggedProductExists}, target node exists: {TargetProductNodeExists}",
+                    draggedProductNode is not null,
+                    DraggedProduct is not null,
+                    targetProductNode is not null);
+                return;
             }
-            else
+
+            if (draggedProductNode is not null)
             {
-                EmitDropError(canAddChildResult);
+                DropDraggedProductNode(targetProductNode, e.CtrlKey);
+            }
+
+            if (DraggedProduct is not null)
+            {
+                DropDraggedProduct(targetProductNode);
             }
 
             draggedProductNode = null;
-        }
-
-
-        if (DraggedProduct is not null)
-        {
-            Logger.LogInformation("Dropping product with id {ProductId} from product list", DraggedProduct.Id);
-
-            var canAddChildResult = targetProductNode.CanAddChild(DraggedProduct);
-
-            if (canAddChildResult == CanAddChildResult.AddChildPossible)
-            {
-                targetProductNode.AddChild(DraggedProduct, 1);
-            }
-            else
-            {
-                Logger.LogInformation(
-                    "Can not add product with id {ProductId} to a node containing product with id {ToProductId}",
-                    DraggedProduct.Id,
-                    targetProductNode.Product.Id);
-                EmitDropError(canAddChildResult);
-            }
-
             DraggedProduct = null;
+
+            Logger.LogInformation("Finish drop on");
         }
     }
 
-    private void EmitDropError(CanAddChildResult canAddChildResult)
+    private void DropDraggedProduct(ProductNode targetProductNode)
     {
+        Logger.LogInformation(
+            "Dropping product with id {ProductId} on product with id {TargetProductID}",
+            DraggedProduct.Id,
+            targetProductNode.Product.Id);
+
+        var canAddChildResult = targetProductNode.CanAddChild(DraggedProduct);
+
+        if (canAddChildResult == CanAddChildResult.AddChildPossible)
+        {
+            targetProductNode.AddChild(DraggedProduct, 1);
+        }
+        else
+        {
+            EmitDropError(
+                canAddChildResult: canAddChildResult,
+                parent: targetProductNode.Product,
+                candidateChild: DraggedProduct);
+        }
+
+        DraggedProduct = null;
+    }
+
+    private void DropDraggedProductNode(ProductNode targetProductNode, bool copyNode)
+    {
+        Logger.LogInformation(
+            "Dropping started on {ProductNodeId}, with copying node {DoCopyNode}",
+            targetProductNode.NodeId,
+            copyNode);
+        var canAddChildResult = targetProductNode.CanAddChild(draggedProductNode.Product);
+        Logger.LogInformation(
+            "Trying adding product with id {CandidateProductId} to product with id {CandidateParentProductId}, can add child: {CanAddChild}",
+            draggedProductNode.Product.Id,
+            targetProductNode.Product.Id,
+            canAddChildResult);
+
+        if (canAddChildResult == CanAddChildResult.AddChildPossible)
+        {
+            if (copyNode)
+            {
+                draggedProductNode.Clone(newParentNode: targetProductNode);
+            }
+            else
+            {
+                draggedProductNode.MoveToNewParent(targetProductNode);
+            }
+        }
+        else
+        {
+            EmitDropError(
+                canAddChildResult: canAddChildResult,
+                parent: targetProductNode.Product,
+                candidateChild: draggedProductNode.Product);
+        }
+
+        draggedProductNode = null;
+    }
+
+    private void EmitDropError(CanAddChildResult canAddChildResult, Product parent, Product candidateChild)
+    {
+
         var message = canAddChildResult switch
         {
-            CanAddChildResult.ChildAndParentAreSame => "Child and parent are the same",
-            CanAddChildResult.ChildIsAlreadyAddedToParent => "Child is already in the parent",
-            CanAddChildResult.ChildIsAncestor => "Child is an ancestor",
-            CanAddChildResult.AncestorPresentInDescendants => "Ancestor is a descendant",
+            CanAddChildResult.ChildAndParentAreSame => $"Child and parent are the same, product id: {parent.Id}",
+            CanAddChildResult.ChildIsAlreadyAddedToParent => $"Child (id: {candidateChild.Id}) is already in the parent (id: {parent.Id}).",
+            CanAddChildResult.ChildIsAncestor => $"Child (id: {candidateChild.Id}) is an ancestor of parent (id: {parent.Id}).",
+            CanAddChildResult.AncestorPresentInDescendants => $"An ancestor of parent ({parent.Id}) is a descendant of the child (id: {candidateChild.Id}).",
             _ => string.Empty,
         };
 

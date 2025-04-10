@@ -97,7 +97,10 @@
 
     private void HandleProductDropFailed(string? obj)
     {
-        errorMessage = obj;
+        if (errorMessage is null) // Hacky way to only display the first error as so far it has not been possible to stop the propagation of the event.
+        {
+            errorMessage = obj;
+        }
     }
 
     private void HandleProductDraggedInTree()
